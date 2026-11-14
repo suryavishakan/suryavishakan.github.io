@@ -1,71 +1,48 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from './icons'
+import Eyes from './Eyes'
 import { Head2 } from './Sections3D'
 import { profile, filters, experience } from './content'
 import { prefersReducedMotion, useReveal } from './hooks'
 
 const rich = (s) => s.split(/\*\*(.+?)\*\*/g).map((p, i) => (i % 2 ? <b key={i}>{p}</b> : p))
 
-/* ───────── Hero: giant 3D name, you standing in front, a few tiles ───────── */
+/* ───────── Hero: centered, quiet, eyes that follow the cursor ───────── */
 export function Hero({ onResume }) {
-  const root = useRef(null)
   const book = profile.bookingUrl || `mailto:${profile.email}?subject=Let's talk`
-  useEffect(() => {
-    const el = root.current
-    if (!el) return
-    const reduced = prefersReducedMotion()
-    const s = { x: 0, y: 0, tx: 0, ty: 0 }
-    let last = 0, raf
-    const onMove = (e) => {
-      const r = el.getBoundingClientRect()
-      s.tx = ((e.clientX - r.left) / r.width - 0.5) * 2
-      s.ty = ((e.clientY - r.top) / r.height - 0.5) * 2
-      last = performance.now()
-    }
-    const tick = (t) => {
-      if (t - last > 2500) { // no pointer: sway gently so it still feels 3D on touch screens
-        s.tx = Math.sin(t / 2600) * 0.55
-        s.ty = Math.cos(t / 3400) * 0.3
-      }
-      s.x += (s.tx - s.x) * 0.07
-      s.y += (s.ty - s.y) * 0.07
-      el.style.setProperty('--px', s.x.toFixed(3))
-      el.style.setProperty('--py', s.y.toFixed(3))
-      raf = requestAnimationFrame(tick)
-    }
-    if (!reduced) {
-      window.addEventListener('pointermove', onMove, { passive: true })
-      raf = requestAnimationFrame(tick)
-    }
-    return () => { window.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf) }
-  }, [])
   return (
-    <div className="hero3" id="top" ref={root}>
-      <span className="h3-hello"><span className="w"><Icon name="wave" size={20} /></span>{profile.greeting}</span>
-      <div className="h3-glow" />
-      <h1 className="h3-name" aria-label={profile.name}>
-        {profile.name.toUpperCase().split('').map((ch, i) => (
-          <span key={i} style={{ animationDelay: `${0.15 + i * 0.09}s` }} aria-hidden="true">{ch}</span>
-        ))}
-      </h1>
-      <img className="h3-me" src={profile.cutout} alt="Surya" draggable="false" />
-      <div className="h3-tile main">
-        <span className="h3-role">{profile.role}</span>
-        <p>{rich(profile.tagline)}</p>
-        <div className="h3-cta">
-          <a className="btn" href={book} {...(profile.bookingUrl ? { target: '_blank', rel: 'noreferrer' } : {})}>Book a Free Meeting <Icon name="arrow" size={16} /></a>
-          <button className="btn ghost" onClick={onResume}>View resume</button>
+    <>
+    <div className="hero" id="top">
+      <div className="wrap">
+        <span className="hello"><span className="w"><Icon name="wave" size={20} /></span>{profile.greeting}</span>
+        <h1>I'm {profile.name}</h1>
+        <div className="chips">
+          <span className="chip-sq" style={{ background: '#ffd9c2', color: '#c2542d' }}><Icon name="brief" size={24} /></span>
+          <span className="chip-pill">{profile.role}</span>
+          <span className="chip-sq" style={{ background: '#cfe3ff', color: '#1d4ed8' }}><Icon name="spark" size={24} /></span>
         </div>
-      </div>
-      <div className="h3-tile now">
-        <small>Now</small>
-        <b>{profile.now.title}</b>
-      </div>
-      <div className="h3-tile status">
-        <small>Status</small>
-        <b><span className="dot" />{profile.status.title}</b>
+        <p className="tagline">{rich(profile.tagline)}</p>
+        <div className="h2-cta" style={{ justifyContent: 'center' }}>
+          <a className="btn dark" href={book} {...(profile.bookingUrl ? { target: '_blank', rel: 'noreferrer' } : {})}>
+            Book a Free Meeting <Icon name="arrow" size={16} />
+          </a>
+        </div>
+        <Eyes />
       </div>
     </div>
+    <div className="strip">
+      <div className="wrap cards3">
+        <R2 className="info">
+          <div><small>Status</small><h3>{profile.status.title}</h3><p>{profile.status.note}</p></div>
+          <span className="badge"><span className="dot" />{profile.status.label}</span>
+        </R2>
+        <R2 className="info darkc" delay={80}>
+          <div><small>Now</small><h3>{profile.now.title}</h3></div>
+          <p>{profile.now.note}</p>
+        </R2>
+      </div>
+    </div>
+    </>
   )
 }
 
